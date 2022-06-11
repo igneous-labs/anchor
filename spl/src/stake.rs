@@ -66,6 +66,18 @@ pub fn withdraw<'info>(
         .map_err(Into::into)
 }
 
+pub fn deactivate_stake<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, DeactivateStake<'info>>,
+) -> Result<()> {
+    let ix = stake::instruction::deactivate_stake(ctx.accounts.stake.key, ctx.accounts.staker.key);
+    solana_program::program::invoke_signed(
+        &ix,
+        &[ctx.accounts.stake, ctx.accounts.clock, ctx.accounts.staker],
+        ctx.signer_seeds,
+    )
+    .map_err(Into::into)
+}
+
 // CPI accounts
 
 #[derive(Accounts)]
@@ -99,6 +111,18 @@ pub struct Withdraw<'info> {
 
     /// StakeHistory sysvar
     pub stake_history: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeactivateStake<'info> {
+    /// The stake account to be deactivated
+    pub stake: AccountInfo<'info>,
+
+    /// The stake account's stake authority
+    pub staker: AccountInfo<'info>,
+
+    /// Clock sysvar
+    pub clock: AccountInfo<'info>,
 }
 
 // State
