@@ -40,6 +40,32 @@ pub fn authorize<'info>(
         .map_err(Into::into)
 }
 
+pub fn withdraw<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, Withdraw<'info>>,
+    amount: u64,
+    custodian: Option<AccountInfo<'info>>,
+) -> Result<()> {
+    let ix = stake::instruction::withdraw(
+        ctx.accounts.stake.key,
+        ctx.accounts.withdrawer.key,
+        ctx.accounts.to.key,
+        amount,
+        custodian.as_ref().map(|c| c.key),
+    );
+    let mut account_infos = vec![
+        ctx.accounts.stake,
+        ctx.accounts.to,
+        ctx.accounts.clock,
+        ctx.accounts.stake_history,
+        ctx.accounts.withdrawer,
+    ];
+    if let Some(c) = custodian {
+        account_infos.push(c);
+    }
+    solana_program::program::invoke_signed(&ix, &account_infos, ctx.signer_seeds)
+        .map_err(Into::into)
+}
+
 // CPI accounts
 
 #[derive(Accounts)]
@@ -57,7 +83,25 @@ pub struct Authorize<'info> {
     pub clock: AccountInfo<'info>,
 }
 
-// state
+#[derive(Accounts)]
+pub struct Withdraw<'info> {
+    /// The stake account to be updated
+    pub stake: AccountInfo<'info>,
+
+    /// The stake account's withdraw authority
+    pub withdrawer: AccountInfo<'info>,
+
+    /// Account to send withdrawn lamports to
+    pub to: AccountInfo<'info>,
+
+    /// Clock sysvar
+    pub clock: AccountInfo<'info>,
+
+    /// StakeHistory sysvar
+    pub stake_history: AccountInfo<'info>,
+}
+
+// State
 
 #[derive(Clone)]
 pub struct StakeAccount(StakeState);
