@@ -6,13 +6,15 @@ use anchor_lang::{
         stake::{
             self,
             program::ID,
-            state::{StakeAuthorize, StakeState},
+            state::StakeState,
         },
     },
     Accounts, Result,
 };
 use borsh::BorshDeserialize;
 use std::ops::Deref;
+
+pub use anchor_lang::solana_program::stake::state::StakeAuthorize;
 
 // CPI functions
 
