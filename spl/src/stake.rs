@@ -155,3 +155,12 @@ impl Deref for StakeAccount {
         &self.0
     }
 }
+
+#[derive(Clone)]
+pub struct Stake;
+
+impl anchor_lang::Id for Stake {
+    fn id() -> Pubkey {
+        ID
+    }
+}
